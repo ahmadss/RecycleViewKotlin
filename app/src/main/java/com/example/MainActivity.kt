@@ -5,9 +5,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.network.RetroInstance
 import com.example.network.RetroService
+import com.example.viewmodel.MainActivityViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -46,20 +50,31 @@ class MainActivity : AppCompatActivity() {
 //       recycleViewAdapter.setListData(items)
 //       recycleViewAdapter.notifyDataSetChanged()
 
-       val retrofitinstance = RetroInstance.getRetroInstance().create(RetroService::class.java)
-       val call = retrofitinstance.getDataFromApi("jakarta")
-       call.enqueue(object : Callback<RecyclerDataList>{
-           override fun onResponse(call: Call<RecyclerDataList>, response: Response<RecyclerDataList>) {
-               if(response.isSuccessful){
-                   recycleViewAdapter.setListData(response.body()?.items!!)
-                   recycleViewAdapter.notifyDataSetChanged();
-               }
-           }
+//       val retrofitinstance = RetroInstance.getRetroInstance().create(RetroService::class.java)
+//       val call = retrofitinstance.getDataFromApi("jakarta")
+//       call.enqueue(object : Callback<RecyclerDataList>{
+//           override fun onResponse(call: Call<RecyclerDataList>, response: Response<RecyclerDataList>) {
+//               if(response.isSuccessful){
+//                   recycleViewAdapter.setListData(response.body()?.items!!)
+//                   recycleViewAdapter.notifyDataSetChanged();
+//               }
+//           }
+//
+//           override fun onFailure(call: Call<RecyclerDataList>, t: Throwable) {
+//               Toast.makeText(this@MainActivity, "Error in getting data", Toast.LENGTH_LONG).show();
+//           }
+//       }
+//       )
 
-           override fun onFailure(call: Call<RecyclerDataList>, t: Throwable) {
-               Toast.makeText(this@MainActivity, "Error in getting data", Toast.LENGTH_LONG).show();
+       val viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
+       viewModel.getRecyclerListDataObserver().observe(this, Observer <RecyclerDataList>{
+           if(it!=null){
+               recycleViewAdapter.setListData(it.items)
+                   recycleViewAdapter.notifyDataSetChanged();
+           } else {
+               Toast.makeText(this@MainActivity, "Error in getting data from server", Toast.LENGTH_LONG).show()
            }
-       }
-       )
+       })
+       viewModel.makeApiCall()
    }
 }
